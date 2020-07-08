@@ -27,8 +27,6 @@
     <script>
         mapboxgl.accessToken = 'pk.eyJ1Ijoic3RhbmlzbGFzZ3VlbmlmZmV5IiwiYSI6ImNrY2J5bWV4MjExMDAycWxrY2VwMTllMWoifQ.pS84cHrBmXG7WjnSN5eBYg';
 
-        var start = [4.3507709, 50.8472999]; // TODO use location
-
         var map = new mapboxgl.Map({
             container: 'map',
             style: 'mapbox://styles/mapbox/streets-v10',
@@ -43,17 +41,20 @@
         var canvas = map.getCanvasContainer();
 
         // list of coordinates
-        var waypoints = [start]
+        var waypoints = []
 
         // create a function to make a directions request
         function getRoute(waypoints) {
             // make a directions request using walking profile
             // an arbitrary start will always be the same
             // only the end or destination will change
-
+            if (waypoints.length < 2) {
+                return;
+            }
             var waypointsString = ""
             for (index = 0; index < waypoints.length; index++) {
-                waypointsString += waypoints[index].join(",")
+                waypointLngLat = waypoints[index].getLngLat();
+                waypointsString += waypointLngLat.lng + "," + waypointLngLat.lat;
                 if (index < waypoints.length - 1) {
                     waypointsString += ";"
                 }
@@ -105,42 +106,12 @@
                             'line-opacity': 0.75
                         }
                     });
+                    map.getSource('route').setData(geojson); // no idea why first route doesn't display otherwise
                 }
                 // add turn instructions here at the end
             };
             req.send();
         }
-
-        map.on('load', function () {
-            // make an initial directions request that
-            // starts and ends at the same location
-            // getRoute(waypoints);
-
-            // // Add starting point to the map
-            // map.addLayer({
-            //     id: 'point',
-            //     type: 'circle',
-            //     source: {
-            //         type: 'geojson',
-            //         data: {
-            //             type: 'FeatureCollection',
-            //             features: [{
-            //                 type: 'Feature',
-            //                 properties: {},
-            //                 geometry: {
-            //                     type: 'Point',
-            //                     coordinates: start
-            //                 }
-            //             }
-            //             ]
-            //         }
-            //     },
-            //     paint: {
-            //         'circle-radius': 10,
-            //         'circle-color': '#3887be'
-            //     }
-            // });
-        });
 
         map.on('click', function (e) {
             var coordsObj = e.lngLat;
@@ -160,29 +131,19 @@
                 }
                 ]
             };
-            map.addLayer({
-                id: 'end' + waypoints.length,
-                type: 'circle',
-                source: {
-                    type: 'geojson',
-                    data: {
-                        type: 'FeatureCollection',
-                        features: [{
-                            type: 'Feature',
-                            properties: {},
-                            geometry: {
-                                type: 'Point',
-                                coordinates: coords
-                            }
-                        }]
-                    }
-                },
-                paint: {
-                    'circle-radius': 10,
-                    'circle-color': '#f30'
-                }
-            });
-            waypoints.push(coords)
+            var marker = new mapboxgl.Marker({
+                draggable: true
+            })
+                .setLngLat(coords)
+                .addTo(map);
+
+            function onDragEnd() {
+                getRoute(waypoints);
+            }
+
+            marker.on('dragend', onDragEnd);
+
+            waypoints.push(marker)
             getRoute(waypoints);
         });
 
