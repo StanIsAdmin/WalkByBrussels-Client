@@ -135,6 +135,8 @@
                 draggable: true
             })
                 .setLngLat(coords)
+                .setPopup(new mapboxgl.Popup()//add popups
+                    .setHTML('<h3>' + waypoints.length + '</h3>'))
                 .addTo(map);
 
             function onDragEnd() {
@@ -143,10 +145,19 @@
 
             marker.on('dragend', onDragEnd);
 
+            const markerDiv = marker.getElement();
+            markerDiv.addEventListener('mouseenter', () => togglePopups());
+            markerDiv.addEventListener('mouseleave', () => togglePopups());
+
             waypoints.push(marker)
             getRoute(waypoints);
         });
 
+        function togglePopups() {
+            for (index = 0; index < waypoints.length; index++) {
+                waypoints[index].togglePopup();
+            }
+        }
 
     </script>
 </body>
