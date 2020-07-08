@@ -1,0 +1,39 @@
+header {
+    height: 13vh;
+}
+
+header li {
+    display: inline;
+    font-size: 18px;
+    color: #007BC0;
+    padding-left: 4vw;
+    font-family: 'Muli', sans-serif;
+    font-weight: 500;
+}
+
+header li:hover {
+    font-weight: bold;
+    cursor: pointer;
+}
+
+header ul {
+    float: right;
+    padding-right: 10vw;
+    padding-top: 5.5vh;
+}
+
+#logo {
+    z-index: 1;
+    position: absolute;
+    width: auto;
+    height: 10vh;
+    top: 1.5vh;
+    left: 2vw;
+}
+
+#map {
+    height: 87vh;
+    width: 100vw;
+    z-index: 0;
+    position: absolute;
+}

@@ -7,9 +7,14 @@
         <script src='https://npmcdn.com/@turf/turf/turf.min.js'></script>
         <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
         <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.11.0/mapbox-gl.js'></script>
+        <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.0.2/mapbox-gl-directions.js"></script>
         <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.11.0/mapbox-gl.css' rel='stylesheet' />
+        <link
+              rel="stylesheet"
+              href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.0.2/mapbox-gl-directions.css"
+              type="text/css"
+              />
         <style>
-
             body {
                 margin: 0;
                 padding: 0;
@@ -77,10 +82,8 @@
                         type: 'geojson'
                     },
                     paint: {
-                        'circle-radius': 20,
-                        'circle-color': 'white',
-                        'circle-stroke-color': '#3887be',
-                        'circle-stroke-width': 3
+                        'circle-radius': 15,
+                        'circle-color': 'blue'
                     }
                 });
 
@@ -110,21 +113,6 @@
                 }, 'waterway-label');
 
                 // Create a symbol layer on top of circle layer
-                map.addLayer({
-                    id: 'warehouse-symbol',
-                    type: 'symbol',
-                    source: {
-                        data: warehouse,
-                        type: 'geojson'
-                    },
-                    layout: {
-                        'icon-image': 'grocery-15',
-                        'icon-size': 1
-                    },
-                    paint: {
-                        'text-color': '#3887be'
-                    }
-                });
 
                 map.addLayer({
                     id: 'dropoffs-symbol',
@@ -136,7 +124,7 @@
                     layout: {
                         'icon-allow-overlap': true,
                         'icon-ignore-placement': true,
-                        'icon-image': 'marker-15',
+                        'icon-image': 'marker-11',
                     }
                 });
 
@@ -180,7 +168,7 @@
                             .setData(routeGeoJSON);
                     }
 
-                    if (data.waypoints.length === 12) {
+                    if (data.waypoints.length === 23) {
                         window.alert('Maximum number of points reached. Read more at docs.mapbox.com/api/navigation/#optimization.');
                     }
                 });
@@ -233,7 +221,7 @@
 
                 // Set the profile to `driving`
                 // Coordinates will include the current location of the truck,
-                return 'https://api.mapbox.com/optimized-trips/v1/mapbox/driving/' + coordinates.join(';') + '?distributions=' + distributions.join(';') + '&overview=full&steps=true&geometries=geojson&source=first&access_token=' + mapboxgl.accessToken;
+                return 'https://api.mapbox.com/optimized-trips/v1/mapbox/walking/' + coordinates.join(';') + '?distributions=' + distributions.join(';') + '&overview=full&steps=true&geometries=geojson&source=first&access_token=' + mapboxgl.accessToken;
             }
 
             function objectToArray(obj) {
