@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8' />
+    <title></title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.11.0/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.11.0/mapbox-gl.css' rel='stylesheet' />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id='map'></div>
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1Ijoic3RhbmlzbGFzZ3VlbmlmZmV5IiwiYSI6ImNrY2J5bWV4MjExMDAycWxrY2VwMTllMWoifQ.pS84cHrBmXG7WjnSN5eBYg';
+
+        var start = [4.3507709, 50.8472999]; // TODO use location
+
+        var map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v10',
+            center: [4.3507709, 50.8472999], // starting position,
+            zoom: 15
+        });
+        // set the bounds of the map
+        //var bounds = [[-123.069003, 45.395273], [-122.303707, 45.612333]];
+        //map.setMaxBounds(bounds);
+
+        // initialize the map canvas to interact with later
+        var canvas = map.getCanvasContainer();
+
+        // list of coordinates
+        var waypoints = [start]
+
+        // create a function to make a directions request
+        function getRoute(waypoints) {
+            // make a directions request using walking profile
+            // an arbitrary start will always be the same
+            // only the end or destination will change
+
+            var waypointsString = ""
+            for (index = 0; index < waypoints.length; index++) {
+                waypointsString += waypoints[index].join(",")
+                if (index < waypoints.length - 1) {
+                    waypointsString += ";"
+                }
+            }
+            console.log(waypointsString);
+
+            var url = 'https://api.mapbox.com/directions/v5/mapbox/walking/' + waypointsString + '?steps=true&geometries=geojson&access_token=' + mapboxgl.accessToken;
+
+            // make an XHR request https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest
+            var req = new XMLHttpRequest();
+            req.open('GET', url, true);
+            req.onload = function () {
+                var json = JSON.parse(req.response);
+                var data = json.routes[0];
+                var route = data.geometry.coordinates;
+                var geojson = {
+                    type: 'Feature',
+                    properties: {},
+                    geometry: {
+                        type: 'LineString',
+                        coordinates: route
+                    }
+                };
+                // if the route already exists on the map, reset it using setData
+                if (map.getSource('route')) {
+                    map.getSource('route').setData(geojson);
+                } else { // otherwise, make a new request
+                    map.addLayer({
+                        id: 'route',
+                        type: 'line',
+                        source: {
+                            type: 'geojson',
+                            data: {
+                                type: 'Feature',
+                                properties: {},
+                                geometry: {
+                                    type: 'LineString',
+                                    coordinates: geojson
+                                }
+                            }
+                        },
+                        layout: {
+                            'line-join': 'round',
+                            'line-cap': 'round'
+                        },
+                        paint: {
+                            'line-color': '#3887be',
+                            'line-width': 5,
+                            'line-opacity': 0.75
+                        }
+                    });
+                }
+                // add turn instructions here at the end
+            };
+            req.send();
+        }
+
+        map.on('load', function () {
+            // make an initial directions request that
+            // starts and ends at the same location
+            // getRoute(waypoints);
+
+            // // Add starting point to the map
+            // map.addLayer({
+            //     id: 'point',
+            //     type: 'circle',
+            //     source: {
+            //         type: 'geojson',
+            //         data: {
+            //             type: 'FeatureCollection',
+            //             features: [{
+            //                 type: 'Feature',
+            //                 properties: {},
+            //                 geometry: {
+            //                     type: 'Point',
+            //                     coordinates: start
+            //                 }
+            //             }
+            //             ]
+            //         }
+            //     },
+            //     paint: {
+            //         'circle-radius': 10,
+            //         'circle-color': '#3887be'
+            //     }
+            // });
+        });
+
+        map.on('click', function (e) {
+            var coordsObj = e.lngLat;
+            canvas.style.cursor = '';
+            var coords = Object.keys(coordsObj).map(function (key) {
+                return coordsObj[key];
+            });
+            var end = {
+                type: 'FeatureCollection',
+                features: [{
+                    type: 'Feature',
+                    properties: {},
+                    geometry: {
+                        type: 'Point',
+                        coordinates: coords
+                    }
+                }
+                ]
+            };
+            map.addLayer({
+                id: 'end' + waypoints.length,
+                type: 'circle',
+                source: {
+                    type: 'geojson',
+                    data: {
+                        type: 'FeatureCollection',
+                        features: [{
+                            type: 'Feature',
+                            properties: {},
+                            geometry: {
+                                type: 'Point',
+                                coordinates: coords
+                            }
+                        }]
+                    }
+                },
+                paint: {
+                    'circle-radius': 10,
+                    'circle-color': '#f30'
+                }
+            });
+            waypoints.push(coords)
+            getRoute(waypoints);
+        });
+
+
+    </script>
+</body>
+
+</html>
